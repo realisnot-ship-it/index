@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>อัตราการชนะเกม - 168 ช่อง</title>
+<style>
+    body { background-color: #0d0b10; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; }
+    
+    .container {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    @media (max-width: 900px) { .container { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 600px) { .container { grid-template-columns: 1fr; } }
+
+    .card { 
+        background: linear-gradient(145deg, #1c1a20, #121016);
+        border: 1px solid #333;
+        border-radius: 12px;
+        padding: 12px;
+        display: flex;
+        align-items: center;
+        transition: transform 0.3s ease, border-color 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    }
+
+    .card:hover {
+        border-color: #c79a3c;
+        transform: translateY(-5px);
+    }
+
+    .thumbnail { 
+        width: 65px; height: 65px; border-radius: 10px; margin-right: 15px; 
+        object-fit: cover; border: 2px solid #222;
+        box-shadow: 0 0 12px rgba(199, 154, 60, 0.4); /* แสงออร่ารอบรูป */
+    }
+
+    .info { flex-grow: 1; overflow: hidden; }
+    .title { font-size: 14px; font-weight: 600; margin-bottom: 6px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .rate-text { font-size: 12px; margin-bottom: 6px; color: #888; }
+    .percent-value { font-size: 14px; font-weight: bold; }
+    
+    .progress-bg { background-color: #222; height: 6px; width: 100%; border-radius: 3px; overflow: hidden; box-shadow: inset 0 1px 3px rgba(0,0,0,0.5); }
+    .progress-fill { height: 100%; border-radius: 3px; transition: width 1.5s ease-in-out; }
+</style>
+</head>
+<body>
+
+<div class="container" id="game-list"></div>
+
+<script>
+    const games = [
+        { name: "Monkeys Wild Party", image: "https://www.pgsoft.com/uploads/Games/Images/56e75b51-7783-4e2d-a912-2747b3fa67ac.png" },
+        { name: "Zombie Blasters", image: "https://www.pgsoft.com/uploads/Games/Images/f550d3d5-6a94-4f98-8afa-399064a0de10.webp" },
+        { name: "Super Wildrix", image: "https://www.pgsoft.com/uploads/Games/Images/a56fb0ad-f3e1-4e61-9a6f-b992a2c2d9a3.png" },
+        { name: "Mighty Mania", image: "https://www.pgsoft.com/uploads/Games/Images/173f17fa-b4d9-4c63-80c9-5f241dde3e73.webp" },
+        { name: "Reel Royale Showdown", image: "https://www.pgsoft.com/uploads/Games/Images/417a3bd7-e6b4-4a20-be7d-256d2dea772c.png" },
+        { name: "Funky Fortunez", image: "https://www.pgsoft.com/uploads/Games/Images/962aa995-67ee-49c4-aa39-1ef993b675be.webp" },
+        { name: "Perfect Strike", image: "https://www.pgsoft.com/uploads/Games/Images/f5885185-5889-40f3-bb67-ec7c929d5310.png" },
+        { name: "Mayan Destiny", image: "https://www.pgsoft.com/uploads/Games/Images/27b785eb-2713-48f6-95ec-c12149a63f89.png" },
+        { name: "Inferno Mayhem", image: "https://www.pgsoft.com/uploads/Games/Images/1bf867f7-6ead-4a20-bb60-077c7acbcddd.webp" },
+        { name: "Fortune Horse", image: "https://www.pgsoft.com/uploads/Games/Images/86f10553-0883-4878-b6cd-cbd2ce955a0f.png" },
+        { name: "Forbidden Alchemy", image: "https://www.pgsoft.com/uploads/Games/Images/61183803-799d-46dd-bd2f-ad694aa5124c.png" },
+        { name: "Mythical Guardians", image: "https://www.pgsoft.com/uploads/Games/Images/e0fdc8ad-7a14-421e-ae3d-4987b84823c3.png" },
+        { name: "Poker Kingdom Win", image: "https://www.pgsoft.com/uploads/Games/Images/98c61d3b-196b-4123-bac1-97f2073c07ec.webp" },
+        { name: "Alibaba's Cave of Fortune", image: "https://www.pgsoft.com/uploads/Games/Images/6e6e5582-09ed-4a12-ac6b-44ede2e2c7ad.png" },
+        { name: "Skylight Wonders", image: "https://www.pgsoft.com/uploads/Games/Images/aa95f7c0-edbd-484b-8728-5152094141dd.png" },
+        { name: "Pharaoh Royals", image: "https://www.pgsoft.com/uploads/Games/Images/1587bce7-23cd-4037-802d-5526d1f2cee4.png" },
+        { name: "Kraken Gold Rush", image: "https://www.pgsoft.com/uploads/Games/Images/64f41485-c4f0-4443-b65c-2b23d070933f.png" },
+        { name: "Majestic Empire", image: "https://www.pgsoft.com/uploads/Games/Images/20e17a35-1334-4bd0-960a-bd6b8f060579.png" },
+        { name: "Grimms' Bounty: Hansel & Gretel", image: "https://www.pgsoft.com/uploads/Games/Images/457d9f02-028d-4892-837b-515d210a8885.png" },
+        { name: "Galaxy Miner", image: "https://www.pgsoft.com/uploads/Games/Images/4f7c7fa9-145e-4640-b3fe-67e836462e61.png" },
+        { name: "Dragon's Treasure Quest", image: "https://www.pgsoft.com/uploads/Games/Images/20e99ecd-a421-4252-b062-64d43fbfef9c.png" },
+        { name: "Diner Frenzy Spins", image: "https://www.pgsoft.com/uploads/Games/Images/9c3e9243-009b-49e7-866a-04e2cbffe1b0.webp" },
+        { name: "Jack the Giant Hunter", image: "https://www.pgsoft.com/uploads/Games/Images/36c89f83-ac04-4882-b120-1cff4a01a14f.png" },
+        { name: "Dead Man's Riches", image: "https://www.pgsoft.com/uploads/Games/Images/03ab6918-7da7-46fc-ab04-de92a1eae4f0.webp" },
+        { name: "Knockout Riches", image: "https://www.pgsoft.com/uploads/Games/Images/7f90b3bc-6dd5-499b-b662-67b350061839.webp" },
+        { name: "Doomsday Rampage", image: "https://www.pgsoft.com/uploads/Games/Images/fac797e7-e4dd-4fcb-a76b-30009a7f0772.webp" },
+        { name: "Graffiti Rush", image: "https://www.pgsoft.com/uploads/Games/Images/b79c26a3-efdb-4b79-8001-e9369c7e9912.webp" },
+        { name: "Mr. Treasure's Fortune", image: "https://www.pgsoft.com/uploads/Games/Images/b936e5e8-9350-4690-84aa-53449fb9b475.webp" },
+        { name: "Incan Wonders", image: "https://www.pgsoft.com/uploads/Games/Images/5c5c62f3-3bf5-4f33-9232-b5150e49d646.webp" },
+        { name: "Fortune Snake", image: "https://www.pgsoft.com/uploads/Games/Images/cf36776a-3d4f-4ca0-9763-475979b5c6e2.webp" },
+        { name: "Geisha's Revenge", image: "https://www.pgsoft.com/uploads/Games/Images/9021fcb8-ea41-4975-8f7f-87f0076b29a9.webp" },
+        { name: "Chocolate Deluxe", image: "https://www.pgsoft.com/uploads/Games/Images/1a035990-664c-4794-afe6-10ca9ebe2778.webp" },
+        { name: "Rio Fantasia", image: "https://www.pgsoft.com/uploads/Games/Images/b8dd914d-11cf-40d4-8e03-c718ddd424c3.webp" },
+        { name: "Museum Wonders", image: "https://www.pgsoft.com/uploads/Games/Images/42d4cdaf-c0e7-44e3-b579-8b9f40c269da.webp" },
+        { name: "Oishi Delights", image: "https://www.pgsoft.com/uploads/Games/Images/62656bc0-b89c-49e4-992f-476438f55a70.webp" },
+        { name: "Three Crazy Piggies", image: "https://www.pgsoft.com/uploads/Games/Images/9e85c34c-e2b9-4964-9ca6-cbc8da943885.webp" },
+        { name: "Wings of Iguazu", image: "https://www.pgsoft.com/uploads/Games/Images/3b2f77b8-40ba-46f6-ba9a-7a24f095223b.webp" },
+        { name: "Yakuza Honor", image: "https://www.pgsoft.com/uploads/Games/Images/c961c180-e315-4985-b66d-be3dcb4ac2bd.webp" },
+        { name: "Shark Bounty", image: "https://www.pgsoft.com/uploads/Games/Images/f72762b7-4de3-4560-b4af-f7ef3407e82b.webp" },
+        { name: "Futebol Fever", image: "https://www.pgsoft.com/uploads/Games/Images/23ede2c6-1cb2-4f5d-9062-47a643be0c1c.webp" },
+        { name: "Chicky Run", image: "https://www.pgsoft.com/uploads/Games/Images/45446946-1106-42bf-a514-ee5939784a68.png" },
+        { name: "Zombie Outbreak", image: "https://www.pgsoft.com/uploads/Games/Images/188a0ea2-3d8e-4fd5-9306-6a75680285df.png" },
+        { name: "Anubis Wrath", image: "https://www.pgsoft.com/uploads/Games/Images/65c195f6-a3d3-4523-9017-b754fa019d0e.png" },
+        { name: "Mystic Potion", image: "https://www.pgsoft.com/uploads/Games/Images/45caaf2d-d977-4cb9-ba41-da5ed5b9ddd2.png" },
+        { name: "Pinata Wins", image: "https://www.pgsoft.com/uploads/Games/Images/5065b967-4b74-40f9-918a-470557b9b942.png" },
+        { name: "Wild Ape #3258", image: "https://www.pgsoft.com/uploads/Games/Images/537cafee-4b42-48f2-83b6-3aa4a5278ad1.png" },
+        { name: "Cash Mania", image: "https://www.pgsoft.com/uploads/Games/Images/ba4c7860-3a80-4425-82ea-d0c7775aec93.png" },
+        { name: "Gemstones Gold", image: "https://www.pgsoft.com/uploads/Games/Images/cd358c25-7258-4929-baff-0e0c85b4b884.png" },
+        { name: "Fortune Dragon", image: "https://www.pgsoft.com/uploads/Games/Images/6db8b734-210d-4c7f-b427-0480a05a9e7d.png" },
+        { name: "Dragon Hatch 2", image: "https://www.pgsoft.com/uploads/Games/Images/2be4d0d4-2ee9-4164-a5c3-55166ac74cda.png" },
+        { name: "Werewolf's Hunt", image: "https://www.pgsoft.com/uploads/Games/Images/2e54b0dc-718b-47f2-9895-24b3808ed73b.png" },
+        { name: "Tsar Treasures", image: "https://www.pgsoft.com/uploads/Games/Images/f25d28e9-592b-4ebb-893f-3d6f7752d375.png" },
+        { name: "Mafia Mayhem", image: "https://www.pgsoft.com/uploads/Games/Images/99b8a358-9dcb-4ffe-b32f-750dee2da5df.png" },
+        { name: "Forge of Wealth", image: "https://www.pgsoft.com/uploads/Games/Images/0a2b61bc-2199-4d4e-bc64-65bb562a7481.png" },
+        { name: "Wild Heist Cashout", image: "https://www.pgsoft.com/uploads/Games/Images/3838195e-fd57-4044-bc05-875da9a160e1.png" },
+        { name: "Ultimate Striker", image: "https://www.pgsoft.com/uploads/Games/Images/e1ac3f0d-bb93-4f32-8ade-5842de312997.png" },
+        { name: "Ninja Raccoon Frenzy", image: "https://www.pgsoft.com/uploads/Games/Images/563ef823-4192-44ce-8575-1e21706df385.png" },
+        { name: "Gladiator's Glory", image: "https://www.pgsoft.com/uploads/Games/Images/eb322534-bfe4-42db-a1ac-8c7b16db1c80.png" },
+        { name: "Safari Wilds", image: "https://www.pgsoft.com/uploads/Games/Images/ee6e5685-a253-4522-a178-17af607f1242.png" },
+        { name: "Cruise Royale", image: "https://www.pgsoft.com/uploads/Games/Images/cc91a6ca-ba1b-4a0c-a24c-b5a833de9b38.png" },
+        { name: "Fruity Candy", image: "https://www.pgsoft.com/uploads/Games/Images/43d9adea-7937-4517-9b18-de5c2d38ac5e.png" },
+        { name: "Lucky Clover Riches", image: "https://www.pgsoft.com/uploads/Games/Images/18ade33f-90e6-4394-b22b-9e89ecc70e71.png" },
+        { name: "Super Golf Drive", image: "https://www.pgsoft.com/uploads/Games/Images/ac3c3dc1-cffe-4b05-81f1-d5b3233f9864.png" },
+        { name: "Mystical Spirits", image: "https://www.pgsoft.com/uploads/Games/Images/797a15fe-b4cd-4fd6-83f5-49d00c473b1a.png" },
+        { name: "Songkran Splash", image: "https://www.pgsoft.com/uploads/Games/Images/a4d64355-d277-444c-a73a-9e18b5be9469.png" },
+        { name: "Bakery Bonanza", image: "https://www.pgsoft.com/uploads/Games/Images/d4edb7e0-bfea-4da6-bd85-be73404a06ae.png" },
+        { name: "Hawaiian Tiki", image: "https://www.pgsoft.com/uploads/Games/Images/9c26bfa7-d8b6-418f-85e5-092c6f24dd48.png" },
+        { name: "Rave Party Fever", image: "https://www.pgsoft.com/uploads/Games/Images/3dd311e9-2b3d-41ca-a5c1-a31703ba0982.png" },
+        { name: "Fortune Rabbit", image: "https://www.pgsoft.com/uploads/Games/Images/942a8ad7-2501-41dd-9b03-d0cad60b9699.png" },
+        { name: "Midas Fortune", image: "https://www.pgsoft.com/uploads/Games/Images/77b9a4c7-ca70-4aa0-898a-eb248ee158f1.png" },
+        { name: "Asgardian Rising", image: "https://www.pgsoft.com/uploads/Games/Images/9b5036db-8ed1-4548-82e2-c3bbb555da95.png" },
+        { name: "Diner Delights", image: "https://www.pgsoft.com/uploads/Games/Images/3dbea863-a99d-4dbb-b85f-dd19472c981e.png" },
+        { name: "Alchemy Gold", image: "https://www.pgsoft.com/uploads/Games/Images/47d6ea60-2ee5-4a32-a50b-c80f04178d67.png" },
+        { name: "Totem Wonders", image: "https://www.pgsoft.com/uploads/Games/Images/624b2c4e-24c0-4597-a84a-8da5a8aaabbc.png" },
+        { name: "Prosperity Fortune Tree", image: "https://www.pgsoft.com/uploads/Games/Images/fe0deca8-9e51-43e2-8416-76c3843d6c84.png" },
+        { name: "Wild Bounty Showdown", image: "https://www.pgsoft.com/uploads/Games/Images/47558386-711e-4a2f-95cc-953a29f5b0e6.png" },
+        { name: "Wild Coaster", image: "https://www.pgsoft.com/uploads/Games/Images/6c619884-2a62-421e-95bf-a8fff8ebffb9.png" },
+        { name: "Legend of Perseus", image: "https://www.pgsoft.com/uploads/Games/Images/54219b25-08da-4d1a-bb31-2158c920a38f.png" },
+        { name: "Speed Winner", image: "https://www.pgsoft.com/uploads/Games/Images/25881516-d439-43ed-b6e3-eaf96f9074f7.png" },
+        { name: "Lucky Piggy", image: "https://www.pgsoft.com/uploads/Games/Images/cbc99249-8902-4c8d-9d52-16839d553a6f.png" },
+        { name: "Win Win Fish Prawn Crab", image: "https://www.pgsoft.com/uploads/Games/Images/f60111e4-7981-43c5-8154-2d866de25aa0.png" },
+        { name: "Battleground Royale", image: "https://www.pgsoft.com/uploads/Games/Images/5e1ec796-e36a-4efc-934c-60b500bdcacc.png" },
+        { name: "The Queen's Banquet", image: "https://www.pgsoft.com/uploads/Games/Images/dfb8ed47-f441-4bae-86fb-fa89724ca5c9.png" },
+        { name: "Rooster Rumble", image: "https://www.pgsoft.com/uploads/Games/Images/94e8b93e-2192-4a9c-a8e7-828e40832de3.png" },
+        { name: "Butterfly Blossom", image: "https://www.pgsoft.com/uploads/Games/Images/cc9e1cff-f7b7-4c42-885c-042909529531.png" },
+        { name: "Destiny of Sun & Moon", image: "https://www.pgsoft.com/uploads/Games/Images/45b6cabc-48db-499f-be93-dd06e4b818fd.png" },
+        { name: "Garuda Gems", image: "https://www.pgsoft.com/uploads/Games/Images/16ad88bc-6789-4bde-89e6-68aaedfaa83e.png" },
+        { name: "Fortune Tiger", image: "https://www.pgsoft.com/uploads/Games/Images/c84dcb96-06bb-4377-a0a7-3b561fac92f8.png" },
+        { name: "Oriental Prosperity", image: "https://www.pgsoft.com/uploads/Games/Images/a59bcfc9-08ed-468f-8120-20744697255f.png" },
+        { name: "Mask Carnival", image: "https://www.pgsoft.com/uploads/Games/Images/6142e08b-96d2-40af-b116-6352f5834292.png" },
+        { name: "Cocktail Nights", image: "https://www.pgsoft.com/uploads/Games/Images/d391e2e8-b544-4194-8182-f05206093173.png" },
+        { name: "Emoji Riches", image: "https://www.pgsoft.com/uploads/Games/Images/679e269d-c9a2-4233-a03d-dd55856243c6.png" },
+        { name: "Spirited Wonders", image: "https://www.pgsoft.com/uploads/Games/Images/199235bb-b8a9-4a54-a63f-0c7120724841.png" },
+        { name: "Legendary Monkey King", image: "https://www.pgsoft.com/uploads/Games/Images/06f9ab7b-7b72-4676-a522-9997fc3215a1.png" },
+        { name: "Buffalo Win", image: "https://www.pgsoft.com/uploads/Games/Images/4fac121e-72ee-461d-aa43-7a1b1e656e64.png" },
+        { name: "Supermarket Spree", image: "https://www.pgsoft.com/uploads/Games/Images/3f60bdb8-a317-43cf-928f-02c69636f29b.png" },
+        { name: "Raider Jane's Crypt of Fortune", image: "https://www.pgsoft.com/uploads/Games/Images/c72dace6-59d4-4475-ad42-2a15a353253e.png" },
+        { name: "Mermaid Riches", image: "https://www.pgsoft.com/uploads/Games/Images/52f68384-fc85-488d-a7e9-f1729dc63ca9.png" },
+        { name: "Jurassic Kingdom", image: "https://www.pgsoft.com/uploads/Games/Images/f62ccb29-f931-4c90-9c7c-a1c1d7bbca91.png" },
+        { name: "Rise of the Sun God", image: "https://www.pgsoft.com/uploads/Games/Images/a9dd85c6-5c65-414c-8133-ce11610a5b04.png" },
+        { name: "Heist Stakes", image: "https://www.pgsoft.com/uploads/Games/Images/ec91051e-5415-4f31-8ab6-d63f55f7a7d4.png" },
+        { name: "Ways of the Qilin", image: "https://www.pgsoft.com/uploads/Games/Images/8f9f7e6a-021c-4d18-9b40-e306e662669c.png" },
+        { name: "Wild Bandito", image: "https://www.pgsoft.com/uploads/Games/Images/2da32de9-7d53-4043-afa8-bb5dd4d9f25b.png" },
+        { name: "Candy Superwin", image: "https://www.pgsoft.com/uploads/Games/Images/218f9ea3-2a30-4124-892d-90fe01dfdd18.png" },
+        { name: "Majestic Treasures", image: "https://www.pgsoft.com/uploads/Games/Images/b29bec46-4cf1-4eb1-9b77-98ad9813410d.png" },
+        { name: "Crypto Gold", image: "https://www.pgsoft.com/uploads/Games/Images/07a6c8b2-1c48-45e1-b477-46ead36678c1.png" },
+        { name: "Bali Vacation", image: "https://www.pgsoft.com/uploads/Games/Images/8a6f54bc-5f8d-4d23-9737-53df9ee34cfc.png" },
+        { name: "Fortune Ox", image: "https://www.pgsoft.com/uploads/Games/Images/dad28553-b44b-41d9-9e8f-1188f7ffd995.png" },
+        { name: "Opera Dynasty", image: "https://www.pgsoft.com/uploads/Games/Images/70afa3e2-1404-4758-93c0-7a2a39451b17.png" },
+        { name: "Guardians of Ice & Fire", image: "https://www.pgsoft.com/uploads/Games/Images/d20e7ae0-93f7-4912-b74b-411dbf7f3166.png" },
+        { name: "Galactic Gems", image: "https://www.pgsoft.com/uploads/Games/Images/a6a0645e-2056-4bfe-9b13-4f26d9e56500.png" },
+        { name: "Jack Frost's Winter", image: "https://www.pgsoft.com/uploads/Games/Images/42db67b5-c702-4d29-8f31-3d14e221692e.png" },
+        { name: "Lucky Neko", image: "https://www.pgsoft.com/uploads/Games/Images/1bb52586-61f5-41fc-a513-0164c34d0949.png" },
+        { name: "Jewels of Prosperity", image: "https://www.pgsoft.com/uploads/Games/Images/cd0c9ff9-91b2-4888-90f3-54b870d6a553.png" },
+        { name: "Queen of Bounty", image: "https://www.pgsoft.com/uploads/Games/Images/7c545509-fb5a-47a7-ae9f-9692a26cecf8.png" },
+        { name: "Vampire's Charm", image: "https://www.pgsoft.com/uploads/Games/Images/1cf85ef6-78be-4aa3-ad73-218b20b7743d.png" },
+        { name: "Secrets of Cleopatra", image: "https://www.pgsoft.com/uploads/Games/Images/854f925a-8c48-4bca-a3a2-7738dc6dc327.png" },
+        { name: "Thai River Wonders", image: "https://www.pgsoft.com/uploads/Games/Images/1a6c6d92-d87f-4b68-a5a9-01c508466392.png" },
+        { name: "Circus Delight", image: "https://www.pgsoft.com/uploads/Games/Images/16f0d416-8567-4b67-96d5-2f554e93fc42.png" },
+        { name: "Treasures of Aztec", image: "https://www.pgsoft.com/uploads/Games/Images/a3322373-822c-4001-82a4-7762bba041a3.png" },
+        { name: "Genie's 3 Wishes", image: "https://www.pgsoft.com/uploads/Games/Images/6e24d56a-60d9-49d9-bd58-199ac0a30e1c.png" },
+        { name: "Wild Fireworks", image: "https://www.pgsoft.com/uploads/Games/Images/c76eb55f-9632-4bb7-a06a-92be48ef8e6f.png" },
+        { name: "Dreams of Macau", image: "https://www.pgsoft.com/uploads/Games/Images/c074537e-b0bf-4d76-98bd-c43f8755d5c6.png" },
+        { name: "Phoenix Rises", image: "https://www.pgsoft.com/uploads/Games/Images/29012e2d-9e89-452b-b9cf-30f509b92a59.png" },
+        { name: "Ganesha Fortune", image: "https://www.pgsoft.com/uploads/Games/Images/ca820b7e-fec5-4e4d-b2b2-f8cd61fff56e.png" },
+        { name: "Gem Saviour Conquest", image: "https://www.pgsoft.com/uploads/Games/Images/8ab90763-ea4a-4dae-b0f7-7c410582284a.png" },
+        { name: "Egypt's Book of Mystery", image: "https://www.pgsoft.com/uploads/Games/Images/69e1fa39-5763-491e-b5ce-d29968da9e75.png" },
+        { name: "Mahjong Ways 2", image: "https://www.pgsoft.com/uploads/Games/Images/68715ede-f53e-4f94-8efe-2cbf07e70cfd.png" },
+        { name: "Candy Burst", image: "https://www.pgsoft.com/uploads/Games/Images/ee1539eb-4997-46cc-af17-72513b521187.png" },
+        { name: "Caishen Wins", image: "https://www.pgsoft.com/uploads/Games/Images/26555ae0-ce85-4d0f-b8c8-f3b61ae5a7ef.png" },
+        { name: "Shaolin Soccer", image: "https://www.pgsoft.com/uploads/Games/Images/ccb499d7-fb1a-4c6b-967a-0ed35df440e3.png" },
+        { name: "Bikini Paradise", image: "https://www.pgsoft.com/uploads/Games/Images/dcec02ae-0290-443d-815b-91bc1aff7b34.png" },
+        { name: "Reel Love", image: "https://www.pgsoft.com/uploads/Games/Images/9950e02b-98a8-4c34-af2f-5bbe23f5034c.png" },
+        { name: "Fortune Mouse", image: "https://www.pgsoft.com/uploads/Games/Images/dcb0a0c8-86e4-4f81-a738-46fb29bf7c6a.png" },
+        { name: "Dragon Hatch", image: "https://www.pgsoft.com/uploads/Games/Images/c6c50759-1c6b-4ad9-8e2d-841343373672.png" },
+        { name: "Mahjong Ways", image: "https://www.pgsoft.com/uploads/Games/Images/cc01fe53-8f40-4299-9809-5a9e6f3ebb9a.png" },
+        { name: "Flirting Scholar", image: "https://www.pgsoft.com/uploads/Games/Images/4afc4039-1e93-47fc-b7c6-93129a57f4a2.png" },
+        { name: "Muay Thai Champion", image: "https://www.pgsoft.com/uploads/Games/Images/3534dd16-575c-4696-88c5-fba6304c8cbe.png" },
+        { name: "Dragon Tiger Luck", image: "https://www.pgsoft.com/uploads/Games/Images/de0f0574-0104-4277-aa4b-78ff297c3fd9.png" },
+        { name: "Ninja vs Samurai", image: "https://www.pgsoft.com/uploads/Games/Images/129a76ff-cd17-41ff-8deb-8c3d391c2bf2.png" },
+        { name: "Leprechaun Riches", image: "https://www.pgsoft.com/uploads/Games/Images/eb4ef96e-c572-4605-af79-7363db79d1b7.png" },
+        { name: "Double Fortune", image: "https://www.pgsoft.com/uploads/Games/Images/a74054b6-312a-49fe-83a7-24c25b9736b4.png" },
+        { name: "Emperor's Favour", image: "https://www.pgsoft.com/uploads/Games/Images/e4af9ee7-9c0d-460e-8790-07f556a90058.png" },
+        { name: "The Great Icescape", image: "https://www.pgsoft.com/uploads/Games/Images/28d18ca3-ede8-4ccf-a60a-5aeb99ed2f06.png" },
+        { name: "Jungle Delight", image: "https://www.pgsoft.com/uploads/Games/Images/86d4e934-bd1d-4d39-8cda-e271d584b6f2.png" },
+        { name: "Captain's Bounty", image: "https://www.pgsoft.com/uploads/Games/Images/d21582d6-3caf-4201-9896-c23a3d6560e0.png" },
+        { name: "Ganesha Gold", image: "https://www.pgsoft.com/uploads/Games/Images/358c5770-a0b2-4878-a40c-c653bd2bd080.png" },
+        { name: "Journey To The Wealth", image: "https://www.pgsoft.com/uploads/Games/Images/da7b4f9e-854f-4166-b6d6-20dbf983f691.png" },
+        { name: "Symbols of Egypt", image: "https://www.pgsoft.com/uploads/Games/Images/9bb285e8-c438-4672-8da0-4fa3e8294607.png" },
+        { name: "Piggy Gold", image: "https://www.pgsoft.com/uploads/Games/Images/20668a71-d8f1-442c-85bf-9e3961d5c1ae.png" },
+        { name: "Gem Saviour Sword", image: "https://www.pgsoft.com/uploads/Games/Images/cb9dcde5-882c-4134-a48f-62412ba344c5.png" },
+        { name: "Win Win Won", image: "https://www.pgsoft.com/uploads/Games/Images/9c696452-4280-4bda-813b-3e2f1d479991.png" },
+        { name: "Fortune Gods", image: "https://www.pgsoft.com/uploads/Games/Images/95683bf7-a2fd-45d7-9804-9631f2a62fa7.png" },
+        { name: "Santa's Gift Rush", image: "https://www.pgsoft.com/uploads/Games/Images/4290df81-2b14-46bf-be22-f8a3b0cbcc38.png" },
+        { name: "Hip Hop Panda", image: "https://www.pgsoft.com/uploads/Games/Images/1316f098-9698-4300-93be-ec53d6780214.png" },
+        { name: "Prosperity Lion", image: "https://www.pgsoft.com/uploads/Games/Images/626f5763-7bb1-4f20-ac8a-0fe242bc7ee0.png" },
+        { name: "Legend of Hou Yi", image: "https://www.pgsoft.com/uploads/Games/Images/70877e60-6c00-4a72-8067-fb3be5dd8942.png" },
+        { name: "Mr. Hallow-Jackpot!", image: "https://www.pgsoft.com/uploads/Games/Images/eed8d666-40e6-4582-9c5b-7995aab78d5a.png" },
+        { name: "Hood vs Wolf", image: "https://www.pgsoft.com/uploads/Games/Images/6156447d-0627-413f-9ae9-7d2b2cd29f43.png" },
+        { name: "Hotpot", image: "https://www.pgsoft.com/uploads/Games/Images/69eae4d8-24a3-44f3-9895-5ff9cc9f4c51.png" },
+        { name: "Dragon Legend", image: "https://www.pgsoft.com/uploads/Games/Images/f912c332-0ad4-438c-be7a-7e99a6fc9403.png" },
+        { name: "Baccarat Deluxe", image: "https://www.pgsoft.com/uploads/Games/Images/31bdc924-27d3-4006-8381-37e87982375b.png" },
+        { name: "Gem Saviour", image: "https://www.pgsoft.com/uploads/Games/Images/e723e07e-6c22-4a94-8f48-6d4d15946950.png" },
+        { name: "Plushie Frenzy", image: "https://www.pgsoft.com/uploads/Games/Images/a707340a-23c1-44d8-ad74-25798211dc8c.png" },
+        { name: "Medusa", image: "https://www.pgsoft.com/uploads/Games/Images/1d618b78-04f1-4033-ac90-0e6059bd9c98.png" },
+        { name: "Medusa II", image: "https://www.pgsoft.com/uploads/Games/Images/b7f55749-aaa4-4167-b4b8-e0d372159761.png" },
+        { name: "Honey Trap of Diao Chan", image: "https://www.pgsoft.com/uploads/Games/Images/32ec9501-c19f-4eb3-bdcd-7bfd9e80888d.png" },
+        { name: "Tree Of Fortune", image: "https://www.pgsoft.com/uploads/Games/Images/7a503550-716c-4464-a7d5-c6ca7c74a482.png" }
+    ];
+
+    function renderGames() {
+        const container = document.getElementById('game-list');
+        container.innerHTML = games.map((game, index) => {
+            const rate = Math.floor(Math.random() * 41) + 50;
+            const color = rate >= 70 ? '#00ff00' : '#fdb813';
+            return `
+                <div class="card">
+                    <img src="${game.image}" alt="${game.name}" class="thumbnail">
+                    <div class="info">
+                        <div class="title">${game.name}</div>
+                        <div class="rate-text">อัตราการชนะ: <span class="percent-value" style="color: ${color}">${rate}%</span></div>
+                        <div class="progress-bg">
+                            <div class="progress-fill" style="width: ${rate}%; background-color: ${color}; box-shadow: 0 0 8px ${color};"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    renderGames();
+     // ป้องกันการคลิกขวา
+    document.addEventListener('contextmenu', event => event.preventDefault());
+
+    // ป้องกันการกดคีย์ลัด (F12, Ctrl+U, Ctrl+Shift+I)
+    document.onkeydown = function(e) {
+        if(e.keyCode == 123 || 
+           (e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) || 
+           (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0))) {
+            return false;
+        }
+    }
+</script>
+</body>
+</html>
